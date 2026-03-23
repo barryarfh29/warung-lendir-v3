@@ -1,4 +1,4 @@
-pyrogram
+flask
 motor
-requests
-cloudinary
+dnspython
+flask-cors
