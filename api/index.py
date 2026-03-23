@@ -17,7 +17,6 @@ async def home(request: Request):
         # Mencari data dengan id: config
         config = await db.settings.find_one({"id": "config"})
         
-        # Siapkan data untuk dikirim ke HTML
         if config:
             data_web = {
                 "harga_vip": config.get("harga_vip", "0"),
@@ -31,10 +30,10 @@ async def home(request: Request):
                 "nama_paket": "Gunakan Bot Admin untuk Set Data"
             }
             
-        # PERBAIKAN DI SINI: Data harus dibungkus dalam dict
+        # FORMAT TERBARU: request harus ada di dalam dictionary context
         return templates.TemplateResponse(
-            name="index.html", 
-            context={"request": request, "data": data_web}
+            "index.html", 
+            {"request": request, "data": data_web}
         )
     
     except Exception as e:
