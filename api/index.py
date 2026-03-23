@@ -14,7 +14,7 @@ db = client.warung_lendir_db
 @app.get("/")
 async def home(request: Request):
     try:
-        # Mencari data dengan id: config
+        # Mencari data konfigurasi di database
         config = await db.settings.find_one({"id": "config"})
         
         if config:
@@ -30,11 +30,11 @@ async def home(request: Request):
                 "nama_paket": "Gunakan Bot Admin untuk Set Data"
             }
             
-        # FORMAT TERBARU: request harus ada di dalam dictionary context
+        # Mengirim respon ke index.html
         return templates.TemplateResponse(
             "index.html", 
             {"request": request, "data": data_web}
         )
     
     except Exception as e:
-        return f"Error Koneksi Database: {str(e)}"
+        return f"Koneksi Database Bermasalah: {str(e)}"
