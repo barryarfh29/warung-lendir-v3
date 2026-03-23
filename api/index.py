@@ -7,7 +7,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 # Koneksi ke MongoDB (Gunakan link koneksi kamu)
-MONGO_URL = "ISI_DENGAN_URL_MONGODB_KAMU"
+MONGO_URL = "mongodb+srv://Nadira31:Nadira31@cluster0.4rqcy61.mongodb.net/?appName=Cluster0"
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.warung_lendir_db # Nama database kamu
 
