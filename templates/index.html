@@ -1,36 +1,79 @@
-<script>
-    async function loadData() {
-        const status = document.getElementById('status');
-        try {
-            console.log("Mencoba mengambil data...");
-            const response = await fetch('/api/data');
-            
-            if (!response.ok) {
-                throw new Error("Server merespon dengan status: " + response.status);
-            }
-            
-            const data = await response.json();
-            console.log("Data diterima:", data);
+from flask import Flask, jsonify, render_template_string
+from pymongo import MongoClient
+import os
 
-            if (data.preview_url) {
-                document.getElementById('title').innerText = data.nama_paket;
-                document.getElementById('price').innerText = "Rp " + data.harga_vip;
-                
-                const img = document.getElementById('web-img');
-                img.src = data.preview_url;
-                img.style.display = 'block';
-                
-                status.innerText = "Terhubung!";
-                status.style.color = "#0f0";
-                document.getElementById('loader').style.display = 'none';
+app = Flask(__name__)
+
+# KONEKSI DATABASE
+MONGO_URL = "mongodb+srv://Nadira31:Nadira31@cluster0.4rqcy61.mongodb.net/?appName=Cluster0"
+
+def get_db():
+    # Menambahkan timeout agar tidak stuck jika IP diblokir
+    client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000)
+    return client.warung_lendir_db
+
+# KITA PAKAI TEMPLATE STRING AGAR TIDAK ERROR "TEMPLATE NOT FOUND"
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Warung Lendir - Live</title>
+    <style>
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
+        .box { border: 2px solid #00bcd4; padding: 20px; display: inline-block; border-radius: 15px; background: #1a1a1a; width: 300px; }
+        #web-img { width: 100%; border-radius: 10px; display: none; margin: 15px 0; border: 1px solid #333; }
+        .price { font-size: 24px; font-weight: bold; color: #0f0; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1 id="title">Memuat...</h1>
+        <img src="" id="web-img">
+        <div id="price" class="price">Rp --</div>
+        <p id="status" style="font-size: 12px; color: #777;">Menghubungkan...</p>
+    </div>
+    <script>
+        async function load() {
+            try {
+                const res = await fetch('/api/data');
+                const data = await res.json();
+                if (data.preview_url) {
+                    document.getElementById('title').innerText = data.nama_paket;
+                    document.getElementById('price').innerText = "Rp " + data.harga_vip;
+                    const img = document.getElementById('web-img');
+                    img.src = data.preview_url;
+                    img.style.display = 'block';
+                    document.getElementById('status').innerText = "Terhubung!";
+                } else {
+                    document.getElementById('status').innerText = data.error || "Data Kosong";
+                }
+            } catch (e) {
+                document.getElementById('status').innerText = "Gagal: " + e.message;
             }
-        } catch (error) {
-            console.error("ERROR FETCH:", error);
-            status.innerText = "Error: " + error.message;
-            status.style.color = "#f00";
-            // Coba lagi dalam 5 detik
-            setTimeout(loadData, 5000);
         }
-    }
-    loadData();
-</script>
+        load();
+    </script>
+</body>
+</html>
+"""
+
+@app.route('/')
+def home():
+    return render_template_string(HTML_TEMPLATE)
+
+@app.route('/api/data')
+def get_data():
+    try:
+        db = get_db()
+        config = db.settings.find_one({"id": "config"})
+        if config:
+            url = str(config.get("preview_url", "")).replace("`", "").strip()
+            return jsonify({
+                "preview_url": url,
+                "harga_vip": config.get("harga_vip", "0"),
+                "nama_paket": config.get("nama_paket", "WARUNG LENDIR")
+            })
+        return jsonify({"error": "Data config tidak ditemukan di DB"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
