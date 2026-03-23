@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Warung LENDIR Store</title>
+    <style>
+        body { background: #0a0a0a; color: white; font-family: sans-serif; text-align: center; }
+        .card { border: 1px solid #00f2ff; padding: 20px; display: inline-block; border-radius: 15px; margin-top: 50px; }
+        .price { font-size: 2.5rem; color: #00f2ff; }
+        .preview-img { width: 300px; border-radius: 10px; margin-top: 20px; border: 2px solid #333; }
+        .btn { display: block; background: #00f2ff; color: black; padding: 10px; text-decoration: none; border-radius: 5px; margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>WARUNG LENDIR</h1>
+    
+    <div class="card">
+        <h2>{{ data.nama_paket }}</h2>
+        <div class="price">Rp {{ data.harga_vip }}</div>
+        
+        <h3>Preview Konten:</h3>
+        <img src="{{ data.preview_url }}" class="preview-img">
+        
+        <a href="https://t.me/WarungLENDIR_Robot?start=order" class="btn">BELI SEKARANG</a>
+    </div>
+</body>
+</html>
