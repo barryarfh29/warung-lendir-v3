@@ -1,4 +1,4 @@
 flask
-motor
+pymongo
 dnspython
 flask-cors

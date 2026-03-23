@@ -1,33 +1,24 @@
 from flask import Flask, render_template, jsonify
-from motor.motor_asyncio import AsyncIOMotorClient
-import asyncio
+from pymongo import MongoClient
 import os
 
 app = Flask(__name__, template_folder='../templates')
 
-# --- KONEKSI DATABASE ---
-# Pastikan URL ini benar dan tidak ada spasi
+# --- KONEKSI DATABASE (SYNC) ---
 MONGO_URL = "mongodb+srv://Nadira31:Nadira31@cluster0.4rqcy61.mongodb.net/?appName=Cluster0"
-client = AsyncIOMotorClient(MONGO_URL)
+client = MongoClient(MONGO_URL)
 db = client.warung_lendir_db
-
-async def get_config_data():
-    try:
-        # Mencari data dengan id "config" sesuai yang disimpan bot admin kamu
-        doc = await db.settings.find_one({"id": "config"})
-        return doc
-    except Exception as e:
-        print(f"Error Database: {e}")
-        return None
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
 @app.route('/api/data')
-async def get_data():
+def get_data():
     try:
-        config = await get_config_data()
+        # Mencari data dengan id "config"
+        config = db.settings.find_one({"id": "config"})
+        
         if config:
             # Bersihkan URL dari karakter aneh (seperti backtick atau %60)
             raw_url = str(config.get("preview_url", ""))
@@ -42,6 +33,6 @@ async def get_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Standar Vercel Serverless
+# Standar Vercel
 def handler(event, context):
     return app(event, context)
