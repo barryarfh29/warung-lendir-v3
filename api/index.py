@@ -1,43 +1,34 @@
-from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
+from flask import Flask, render_template, jsonify
 from motor.motor_asyncio import AsyncIOMotorClient
+import asyncio
 import os
 
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+app = Flask(__name__, template_folder='../templates')
 
-# Pastikan MONGO_URL sudah ada di Environment Variables Vercel
-MONGO_URL = os.environ.get("MONGO_URL")
+# KONEKSI MONGO
+MONGO_URL = "mongodb+srv://Nadira31:Nadira31@cluster0.4rqcy61.mongodb.net/?appName=Cluster0"
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.warung_lendir_db
 
-@app.get("/")
-async def home(request: Request):
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/api/data')
+async def get_data():
     try:
-        # 1. Ambil data dari MongoDB
+        # Mencari data yang diupdate Bot Admin
         config = await db.settings.find_one({"id": "config"})
-        
-        # 2. Siapkan data sederhana
         if config:
-            web_info = {
-                "harga": config.get("harga_vip", "0"),
-                "foto": config.get("preview_url", "https://via.placeholder.com/400"),
-                "nama": config.get("nama_paket", "Paket Belum Diatur")
-            }
-        else:
-            web_info = {
-                "harga": "0",
-                "foto": "https://via.placeholder.com/400",
-                "nama": "Gunakan Bot Admin untuk Set Data"
-            }
-            
-        # 3. Kirim respon (Format Paling Aman)
-        # Kita masukkan request di posisi pertama, baru context
-        return templates.TemplateResponse(
-            request=request, 
-            name="index.html", 
-            context={"data": web_info}
-        )
-    
+            return jsonify({
+                "preview_url": config.get("preview_url", ""),
+                "harga_vip": config.get("harga_vip", "0"),
+                "nama_paket": config.get("nama_paket", "WARUNG LENDIR")
+            })
+        return jsonify({"error": "Data config tidak ditemukan di MongoDB"}), 404
     except Exception as e:
-        return f"Koneksi Database Bermasalah: {str(e)}"
+        return jsonify({"error": str(e)}), 500
+
+# Wajib untuk Vercel
+def handler(app, event, context):
+    return app(event, context)

@@ -1,27 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Warung LENDIR Store</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warung Lendir - Live</title>
     <style>
-        body { background: #0a0a0a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; }
-        .card { border: 2px solid #00f2ff; padding: 30px; display: inline-block; border-radius: 20px; background: #111; box-shadow: 0 0 20px #00f2ff44; max-width: 350px; }
-        .price { font-size: 3rem; color: #00f2ff; font-weight: bold; text-shadow: 0 0 10px #00f2ff; }
-        .preview-img { width: 100%; border-radius: 10px; margin: 20px 0; border: 1px solid #333; }
-        .btn { display: block; background: #00f2ff; color: black; padding: 15px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 1.2rem; transition: 0.3s; }
-        .btn:hover { background: #fff; transform: scale(1.05); }
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e1e1e; padding: 25px; border-radius: 20px; border: 1px solid #333; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .preview-img { width: 100%; border-radius: 12px; margin: 15px 0; display: none; border: 1px solid #444; }
+        .btn { background: #00bcd4; color: black; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        #status { font-size: 12px; color: #777; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h1>WARUNG LENDIR</h1>
-    
+
     <div class="card">
-        <h2 style="margin-bottom: 5px;">{{ data.nama_paket }}</h2>
-        <div class="price">Rp {{ data.harga_vip }}</div>
+        <h2 id="title">Memuat...</h2>
         
-        <img src="{{ data.preview_url }}" class="preview-img">
+        <img src="" id="web-img" class="preview-img">
         
-        <a href="https://t.me/WarungLENDIR_Robot" class="btn">BELI VIA BOT</a>
+        <div id="price" style="font-size: 24px; font-weight: bold; margin: 10px 0;">Rp --</div>
+        
+        <a href="https://t.me/handlepreviewbot" class="btn">BELI VIA BOT</a>
+        <div id="status">Menghubungkan ke database...</div>
     </div>
+
+    <script>
+        async function fetchData() {
+            const statusEl = document.getElementById('status');
+            try {
+                // Gunakan cache-breaker agar data selalu fresh
+                const response = await fetch('/api/data?t=' + Date.now());
+                const data = await response.json();
+
+                if (data.preview_url) {
+                    document.getElementById('title').innerText = data.nama_paket;
+                    document.getElementById('price').innerText = "Rp " + data.harga_vip;
+                    
+                    const img = document.getElementById('web-img');
+                    img.src = data.preview_url;
+                    img.style.display = 'block';
+                    
+                    statusEl.innerText = "Data Berhasil Dimuat";
+                    statusEl.style.color = "#0f0";
+                }
+            } catch (err) {
+                statusEl.innerText = "Gagal memuat. Mencoba lagi dalam 3 detik...";
+                statusEl.style.color = "#f00";
+                setTimeout(fetchData, 3000);
+            }
+        }
+
+        fetchData();
+    </script>
 </body>
 </html>

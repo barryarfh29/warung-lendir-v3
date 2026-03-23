@@ -1,4 +1,4 @@
-fastapi
+pyrogram
 motor
-jinja2
-uvicorn
+requests
+cloudinary
