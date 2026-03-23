@@ -17,7 +17,7 @@ async def home(request: Request):
         # 1. Ambil data dari MongoDB
         config = await db.settings.find_one({"id": "config"})
         
-        # 2. Siapkan data (pastikan tidak ada ID MongoDB yang terbawa)
+        # 2. Siapkan data sederhana
         if config:
             web_info = {
                 "harga": config.get("harga_vip", "0"),
@@ -31,12 +31,13 @@ async def home(request: Request):
                 "nama": "Gunakan Bot Admin untuk Set Data"
             }
             
-        # 3. Kirim ke HTML dengan format context yang paling aman
+        # 3. Kirim respon (Format Paling Aman)
+        # Kita masukkan request di posisi pertama, baru context
         return templates.TemplateResponse(
-            name="index.html",
-            context={"request": request, "data": web_info}
+            request=request, 
+            name="index.html", 
+            context={"data": web_info}
         )
     
     except Exception as e:
-        # Jika error, tampilkan pesan error yang jelas
         return f"Koneksi Database Bermasalah: {str(e)}"
